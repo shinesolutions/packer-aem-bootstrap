@@ -230,7 +230,7 @@ define ami_ids_examples
 	make ami-ids config_path=../aem-helloworld-config/packer-aem/$(1)/
 endef
 
-# convenient target for creating self-signed certificate using OpenSSL
+# Creates self-signed certificate using OpenSSL
 create-cert: stage
 	openssl req \
 	    -new \
@@ -241,5 +241,13 @@ create-cert: stage
 	    -subj "/C=AU/ST=Victoria/L=Melbourne/O=AEM OpenCloud/CN=*.aemopencloud.net" \
 	    -keyout stage/certs/aem.key \
 	    -out stage/certs/aem.cert
+
+# Creates self-signed certificate (AEM 6.5 / JDK11)
+create-cert65: stage
+	openssl genrsa -aes256 -out localhostprivate.key 4096
+	openssl rsa -in localhostprivate.key -out localhostprivate.key
+	openssl req -sha256 -new -key localhostprivate.key -out localhost.csr -subj '/CN=localhost'
+	openssl x509 -req -days 365 -in localhost.csr -signkey localhostprivate.key -out localhost.crt
+	openssl pkcs8 -topk8 -inform PEM -outform DER -in localhostprivate.key -out localhostprivate.der -nocrypt
 
 .PHONY: ci clean stage package publish deps deps-local deps-test deps-test-local lint config aws-java aws-author aws-publish aws-dispatcher aws-author-publish-dispatcher docker-java docker-author docker-publish docker-dispatcher docker-author-publish-dispatcher test-integration test-integration-local ami-ids ami-ids-examples create-cert
